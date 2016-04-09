@@ -1,0 +1,10 @@
+{
+  "name": "Robots",
+  "version": "0.0.0",
+  "description": "Robots",
+  "main": "server.js",
+  "author": {
+    "name": "Benji",
+    "email": ""
+  }
+}
