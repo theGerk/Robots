@@ -41,6 +41,11 @@ function putOnScreen(imgStr, xLoc, yLoc, click) {
 }
 
 function render() {
+	/*(function (){
+		var i = document.getElementsByClassName('cell');
+		for (var k  = 0, kMax = i.length; k < kMax; k++)
+			i[k].remove();
+	})();*/
 	$('.cell').remove();
 
 	var show = [];
@@ -63,14 +68,13 @@ function render() {
 	var xLoc = 0;
 	var yLoc = 0;
 	for (r in show) {
+		drawBot(show[r], xLoc, yLoc);
+		
+		drawSideBorder(xLoc, yLoc);
 		xLoc = (xLoc + 1) % rowsize;
 		if (xLoc === 0) {
 			drawLowerBorder(yLoc, rowsize);
 			yLoc++;
-		}
-		drawBot(show[r], xLoc, yLoc);
-		if (xLoc !== rowsize - 1) {
-			drawSideBorder(xLoc, yLoc);
 		}
 
 	}
@@ -78,22 +82,23 @@ function render() {
 
 var drawBot = function (bot, x, y) {
 	var iStart = Math.max(bot.x - 2, 0),
-		iMax = Math.min(bot.y + 3, map.length),
+		iMax = Math.min(bot.x + 3, map[0].length),
 		jStart = Math.max(bot.y - 2, 0),
-		jMax = Math.min(bot.y + 3, map[0].length);
+		jMax = Math.min(bot.y + 3, map.length);
 	x *= TILE_SIZE * (TILES_IN_MAP + 1);
 	y *= TILE_SIZE * (TILES_IN_MAP + 1);
 	for (var i = iStart, X = x; i < iMax; i++, X+=TILE_SIZE) {
 		for (var j = jStart, Y = y; j < jMax; j++, Y+=TILE_SIZE) {
-			putOnScreen(IMAGES[map[j][i].image], (x + i) * TILE_SIZE * (TILES_IN_MAP + 1), (y + j) * TILE_SIZE * (TILES_IN_MAP));
+			putOnScreen((map[j][i].entity instanceof Object) ? roboImg(map[j][i].entity) : IMAGES[map[j][i]], X, Y);
 		}
 	}
 };
 
 var drawSideBorder = function (x, y) {
+	x *= TILES_IN_MAP + 1;
 	x += TILES_IN_MAP;
 	x *= TILE_SIZE;
-	y *= TILE_SIZE;
+	y *= TILE_SIZE * (TILES_IN_MAP + 1);
 
 	for (var i = 0; i < TILES_IN_MAP; i++) {
 		putOnScreen(BOARDER_IMG, x, y);
@@ -106,7 +111,7 @@ var drawLowerBorder = function (y, length) {
 	y *= TILE_SIZE;
 	length = length * (TILES_IN_MAP + 1) - 1;
 	var x = 0;
-	for (var i = 0; i < length; i++) {
+	for (var i = 0; i <= length; i++) {
 		putOnScreen(BOARDER_IMG, x, y);
 		x += TILE_SIZE;
 	}
@@ -116,16 +121,16 @@ var drawLowerBorder = function (y, length) {
  * Gets the data the robot can see
  * returns tile[][]
  */
-function getInfo(robot) {
+function getInfo(bot) {
 	var iStart = Math.max(bot.x - 2, 0),
-		iMax = Math.min(bot.y + 3, map.length),
+		iMax = Math.min(bot.x + 3, map.length),
 		jStart = Math.max(bot.y - 2, 0),
 		jMax = Math.min(bot.y + 3, map[0].length);
 	var sightRange = [];
 	
-	for (var j = jStart; j <= jMax; j++) {
+	for (var j = jStart; j < jMax; j++) {
 		var t = [];
-		for (var i = iStart - 2; x <= iMax; i++) {
+		for (var i = iStart; i < iMax; i++) {
 			t.push(map[j][i]);
 		}
 		sightRange.push(t);
@@ -161,6 +166,9 @@ var makeRobot = function (name, i, img, xPos, yPos) {
 	};
 };
 
+function roboImg(robit) {
+	return robit.direction + robit.img;
+}
 
 /**
  * sets function of a robot
@@ -169,9 +177,7 @@ var makeRobot = function (name, i, img, xPos, yPos) {
  */
 var setFunc = function (robot, theirCode) {
 	robot.code = theirCode;
-	robot.nextMove = function (input, data) {
-		eval(theirCode);
-	};
+	robot.nextMove = Function('input', 'data', theirCode);
 };
 
 /**
@@ -184,9 +190,11 @@ var gameTick = function (robots) {
 			applyAction(t, t.nextMove(getInfo(t), t.data));
 		}
 	}
+
+	render();
 };
 
-var applyAction = function (actions, robot) {
+var applyAction = function (robot, actions) {
 	var i = robot.movement;
 	for (var action in actions) {
 		if (actions[action].toLowerCase() === 'move') {
@@ -244,17 +252,17 @@ function push(robot, x, y) {
 			var ml = map[y2][x2];
 			if (ml.entity === null) {
 
-				imagePush(ml, imagePop(mapLoc));
+				
 
 				if (mapLoc.entity instanceof Object) {
 					var e = ml.entity = mapLoc.entity;
 					mapLoc.entity = null;
 					e.x = x2;
 					e.y = y2;
-
 				} else {
 					
-					
+					imagePush(ml, imagePop(mapLoc));
+
 					ml.pushable = mapLoc.pushable;
 					mapLoc.pushable = false;
 					
@@ -266,8 +274,8 @@ function push(robot, x, y) {
 			if (ml.moveOn)
 				ml.moveOn();
 			
-			if (mapLoc.pushOff)
-				mapLoc.pushOff();
+			if (mapLoc.moveOff)
+				mapLoc.moveOff();
 		});
 	}
 	if (mapLoc.onPush)
@@ -303,7 +311,6 @@ function kill(robot) {
 
 	var m = map[robot.y][robot.x];
 	m.entity = null;
-	imagePop(m);
 	if (m.moveOff)
 		m.moveOff();
 }
@@ -312,11 +319,11 @@ var doAction = function (robot, fn) {
 	var x = robot.x,
 		y = robot.y;
 	if (robot.direction === 0) {
-		fn(robot, x, y + 1);
+		fn(robot, x, y - 1);
 	} else if (robot.direction === 1) {
 		fn(robot, x + 1, y);
 	} else if (robot.direction == 2) {
-		fn(robot, x, y - 1)
+		fn(robot, x, y + 1)
 	} else {
 		fn(robot, x - 1, y);
 	}
@@ -326,10 +333,9 @@ var doAction = function (robot, fn) {
 function moveForward(robot, x, y) {
 	var mapLoc = map[y][x];
 	
-	if (mapLoc.entity) {
+	if (mapLoc.entity === null) {
 		var m = map[robot.x][robot.y];
 		
-		imagePush(mapLoc, imagePop(m));
 
 		m.entity = null;
 		if (m.moveOff)
@@ -418,7 +424,7 @@ var red = function (robotName, robotImage, x, y) {
 	var myRobo;
 	entities.push(myRobo = makeRobot(robotName, entities.length, robotImage, x, y));
 	
-	setFunc(myRobo, 'return [\'forward\',\'right\',\'push\']');
+	setFunc(myRobo, 'return [\'move\',\'right\',\'push\']');
 	
 	return { background: { val: PLAIN, back: null }, image: robotImage, entity: myRobo, pushable: false, destroyable: false };
 };
@@ -500,3 +506,5 @@ map = [
 		black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black()
 	]
 ];
+
+render();

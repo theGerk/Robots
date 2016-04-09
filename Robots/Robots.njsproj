@@ -37,7 +37,7 @@
     <Content Include="webapp\Boarder.png" />
     <Content Include="webapp\myPage.html" />
     <Content Include="webapp\Skins\android.png" />
-    <Content Include="webapp\Skins\Robert_Blue.png" />
+    <Content Include="webapp\Skins\Robot_Blue.png" />
     <Content Include="webapp\Skins\Robot_Black.png" />
     <Content Include="webapp\Skins\Robot_Black_Red.png" />
     <Content Include="webapp\Skins\Robot_Purple.png" />
