@@ -34,7 +34,16 @@
     <Compile Include="webapp\UserFunctions.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="webapp\Boarder.png" />
     <Content Include="webapp\myPage.html" />
+    <Content Include="webapp\Skins\android.png" />
+    <Content Include="webapp\Skins\Robert_Blue.png" />
+    <Content Include="webapp\Skins\Robot_Black.png" />
+    <Content Include="webapp\Skins\Robot_Black_Red.png" />
+    <Content Include="webapp\Skins\Robot_Purple.png" />
+    <Content Include="webapp\Skins\Robot_Red.png" />
+    <Content Include="webapp\Skins\Target.png" />
+    <Content Include="webapp\Skins\That_Blue_Guy.png" />
     <Content Include="webapp\WorldObjects\Boost_Tile.png" />
     <Content Include="webapp\WorldObjects\Explosion.png" />
     <Content Include="webapp\WorldObjects\Gate_Down.PNG" />
@@ -49,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="webapp\" />
+    <Folder Include="webapp\Skins\" />
     <Folder Include="webapp\WorldObjects\" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
