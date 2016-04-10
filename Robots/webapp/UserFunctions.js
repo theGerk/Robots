@@ -101,7 +101,7 @@ var drawBot = function (bot, x, y) {
 			else {
 				putOnScreen(IMAGES[k.image], X, Y);
 				if (k.tech !== null)
-					putOnScreen(k.tech.val, X, Y);
+					putOnScreen(k.tech.val.val, X, Y);
 			}
 		}
 	}
@@ -135,7 +135,7 @@ function getInfo(bot) {
 	for (var j = jStart; j < jMax; j++) {
 		var t = [];
 		for (var i = iStart; i < iMax; i++) {
-			t.push(map[j][i]);
+			t.push();
 		}
 		sightRange.push(t);
 	}
@@ -419,6 +419,7 @@ function hole() {
 
 var makeTile = function (val) {
 	return {
+		description: '',	//what robot sees
 		background: null,	//stack for backgrounds
 		image: val,	//an integer representing image used
 		tech: null,	//Technology stack on tile
@@ -436,7 +437,7 @@ var makeTile = function (val) {
 
 var makeTech = function (img, func) {
 	return {
-		image: img,	//image for tech (nullable string)
+		val: img,	//image for tech (nullable string)
 		onPickup: func,	//trigger for pick up, takes in robot
 	};
 };
@@ -469,7 +470,7 @@ var pickup = function (robot, x, y) {
 };
 
 var black = function () {
-	return { background: null, image: IMOVABLE_ROCK, entity: false, pushable: false, destroyable: false, tech: null };
+	return { background: null, image: IMOVABLE_ROCK, entity: false, pushable: false, destroyable: false, tech: null, description:'A moveable rock' };
 };
 
 var red = function (robotName, robotImage, x, y) {
@@ -542,7 +543,7 @@ map = [
 	], [
 		black(),white(),white(),white(),white(),white(),white(),white(),black(),white(),white(),white(),white(),white(),white(),white(),black(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
-		black(),white(),white(),white(),white(),white(),white(),white(),black(),pink(8,11),white(),white(),white(),white(),white(),pink(15,11),black(),white(),white(),white(),white(),white(),white(),white(),black()
+		black(),white(),white(),white(),white(),white(),white(),white(),black(),pink(8,11),white(),white(),white(),white(),white(),pink(16,11),black(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
 		black(),white(),white(),black(),white(),white(),white(),white(),teal(),white(),white(),yellow(),yellow(),yellow(),white(),white(),teal(),white(),white(),white(),white(),black(),white(),white(),black()
 	], [
@@ -550,7 +551,7 @@ map = [
 	], [
 		black(),white(),white(),black(),white(),white(),white(),white(),teal(),white(),white(),yellow(),yellow(),yellow(),white(),white(),teal(),white(),white(),white(),white(),black(),white(),white(),black()
 	], [
-		black(),white(),white(),white(),white(),white(),white(),white(),black(),pink(8,15),white(),white(),white(),white(),white(),pink(15,15),black(),white(),white(),white(),white(),white(),white(),white(),black()
+		black(),white(),white(),white(),white(),white(),white(),white(),black(),pink(8,13),white(),white(),white(),white(),white(),pink(16,13),black(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
 		black(),white(),white(),white(),white(),white(),white(),white(),black(),white(),white(),white(),white(),white(),white(),white(),black(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
@@ -573,5 +574,7 @@ map = [
 		black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black()
 	]
 ];
+entities[3].data = JSON.parse('{"instructions": ["move", "move", "move", "move", "move", "move", "move", "move", "move", "left", "move", "move", "move", "right", "move", "left", "move", "move", "move", "move", "move", "move", "grab", "move"], "i": 0 }');
+setFunc(entities[3], "var output = [];\nif(data.i < data.instructions.length)\n\tfor (var i = 0; i < 3; i++)\n\t\toutput.push(data.instructions[data.i + i]);\nelse\n\tconsole.log('it\\'s time');\ndata.i += 3;\nreturn output;");
 
 render();
