@@ -55,12 +55,11 @@ function render() {
 
 	var screensLong = (window.innerWidth / (TILE_SIZE * RATIO)) | 0;
 	
-
-	if (screensLong % (TILES_IN_MAP + 1) === TILES_IN_MAP)
-		screensLong = ((screensLong / (TILES_IN_MAP)) | 0) + 1;
-	else
-		screensLong = (screensLong / (TILES_IN_MAP)) | 0;
-
+	screensLong--;
+	screensLong /= TILES_IN_MAP + 1;
+	screensLong |= 0;
+	if (screensLong === 0)
+		screensLong = 1;
 	var rowsize = Math.ceil(Math.sqrt(show.length));
 	if (rowsize > screensLong)
 		rowsize = screensLong;
@@ -69,24 +68,28 @@ function render() {
 	var yLoc = 0;
 	for (r in show) {
 		drawBot(show[r], xLoc, yLoc);
-		
-		drawSideBorder(xLoc, yLoc);
-		xLoc = (xLoc + 1) % rowsize;
-		if (xLoc === 0) {
-			drawLowerBorder(yLoc, rowsize);
+		xLoc++;
+		xLoc %= rowsize;
+		if (xLoc === 0)
 			yLoc++;
-		}
-
 	}
 }
 
 var drawBot = function (bot, x, y) {
+	
+
 	var iStart = Math.max(bot.x - 2, 0),
 		iMax = Math.min(bot.x + 3, map[0].length),
 		jStart = Math.max(bot.y - 2, 0),
 		jMax = Math.min(bot.y + 3, map.length);
 	x *= TILE_SIZE * (TILES_IN_MAP + 1);
 	y *= TILE_SIZE * (TILES_IN_MAP + 1);
+	drawVertBorder(x, y);
+	drawHortBorder(x, y);
+	drawVertBorder(x + TILE_SIZE * (TILES_IN_MAP + 1), y);
+	drawHortBorder(x, y + TILE_SIZE * (TILES_IN_MAP + 1));
+	x += TILE_SIZE;
+	y += TILE_SIZE;
 	for (var i = iStart, X = x; i < iMax; i++, X += TILE_SIZE) {
 		for (var j = jStart, Y = y; j < jMax; j++, Y += TILE_SIZE) {
 			var k = map[j][i];
@@ -98,26 +101,17 @@ var drawBot = function (bot, x, y) {
 	}
 };
 
-var drawSideBorder = function (x, y) {
-	x *= TILES_IN_MAP + 1;
-	x += TILES_IN_MAP;
-	x *= TILE_SIZE;
-	y *= TILE_SIZE * (TILES_IN_MAP + 1);
-
-	for (var i = 0; i < TILES_IN_MAP; i++) {
+var drawHortBorder = function (x, y) {
+	for (var i = 0; i < TILES_IN_MAP + 2; i++) {
 		putOnScreen(BOARDER_IMG, x, y);
-		y += TILE_SIZE;
+		x += TILE_SIZE;
 	}
 };
 
-var drawLowerBorder = function (y, length) {
-	y = y * (TILES_IN_MAP + 1) + TILES_IN_MAP;
-	y *= TILE_SIZE;
-	length = length * (TILES_IN_MAP + 1) - 1;
-	var x = 0;
-	for (var i = 0; i <= length; i++) {
+var drawVertBorder = function (x, y) {
+	for (var i = 0; i < TILES_IN_MAP + 2; i++) {
 		putOnScreen(BOARDER_IMG, x, y);
-		x += TILE_SIZE;
+		y += TILE_SIZE;
 	}
 };
 
