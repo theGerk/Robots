@@ -506,11 +506,11 @@ var white = function () {
 };
 
 var yellow = function (){
-	var TECH = [makeTech('healthBoost.png', function (robot) {
+	var TECH = [makeTech('Tech/Health_Tile.png', function (robot) {
 			robot.hp++;
-		}), makeTech('attackBoost.png', function (robot) {
+		}), makeTech('Tech/Damage_Tile.png', function (robot) {
 			robot.damage++;
-		}), makeTech('movementBoost.png', function (robot) {
+		}), makeTech('Tech/Boost_Tile.png', function (robot) {
 			robot.movement++;
 		})];
 	var output = white();
