@@ -30,13 +30,17 @@
 	</div>
 	<script type="text/javascript">
 		function overlay(robot) {
+			var p = document.createElement('p');
+			p.innerHTML = 'HP: ' + robot.hp.toString() + ' &nbsp;DMG: ' + robot.damage.toString() + ' &nbsp;MVT: ' + robot.movement.toString();
 			var el = document.getElementById("overlay");
+			el.children[0].appendChild(p);
 			el.style.visibility = "visible";
 			var myText = document.getElementById('userInputText');
 			myText.value = robot.code;
 			document.getElementById('submitButton').onclick = function () {
 				setFunc(robot, myText.value);
 				el.style.visibility = "hidden";
+				p.remove();
 			};
 		}
 	</script>

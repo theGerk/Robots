@@ -1,4 +1,4 @@
-﻿
+﻿TECH_DROP_CHANCE = .5;
 MOVEABLE_ROCK = 2;
 IMOVABLE_ROCK = 1;
 PLAIN = 0;
@@ -94,9 +94,15 @@ var drawBot = function (bot, x, y) {
 		for (var j = jStart, Y = y; j < jMax; j++, Y += TILE_SIZE) {
 			var k = map[j][i];
 			if (k.entity instanceof Object)
-				putOnScreen(roboImg(k.entity), X, Y, function () { overlay(bot); });
-			else
+				if (k.entity === bot)
+					putOnScreen(roboImg(k.entity), X, Y, function () { overlay(bot); });
+				else
+					putOnScreen(roboImg(k.entity), X, Y);
+			else {
 				putOnScreen(IMAGES[k.image], X, Y);
+				if (k.tech !== null)
+					putOnScreen(k.tech.val, X, Y);
+			}
 		}
 	}
 };
@@ -150,7 +156,7 @@ var makeRobot = function (name, i, img, xPos, yPos) {
 		x: xPos,
 		y: yPos,
 		code: "",
-		tech: {},
+		tech: [],
 		data: {},
 		hp: 1,
 		movement: 3,
@@ -208,6 +214,8 @@ var applyAction = function (robot, actions) {
 		} else if (actions[action].toLowerCase() === 'talk') {
 			doAction(robot, talk);
 			i++;
+		} else if (actions[action].toLowerCase() === 'grab') {
+			doAction(robot, pickup);
 		} else if (actions[action].toLowerCase() === 'fuck') {
 			alert('damn right');
 		} else {
@@ -302,7 +310,16 @@ var attack = function (robot, x, y) {
 };
 
 function kill(robot) {
-	for (var i = robot.index, iMax = entities.length; i < iMax; i++)
+	//drops tech
+	for (var i = 0; i < robot.tech.length; i++) {
+		if (Math.random() < TECH_DROP_CHANCE) {
+			var deltaX = ((Math.random() * 3) | 0) - 1;
+			var deltaY = ((Math.random() * 3) | 0) - 1;
+			techPush(map[robot.y + detlaY][robot.x + detlaX], robot.tech[i]);
+		}
+	}
+
+	for (var i = robot.index + 1, iMax = entities.length; i < iMax; i++)
 		entities[i - 1] = entities[i];
 
 	entities.pop();
@@ -403,19 +420,55 @@ var makeTile = function (val) {
 	return {
 		background: null,	//stack for backgrounds
 		image: val,	//an integer representing image used
+		tech: null,	//Technology stack on tile
 		entity: null,	//entity on this square, false means it can not have an entity, null means it does not
 		onPush: null,	//a trigger for on push
 		moveOn: null,	//a trigger for move on
 		moveOff: null,	//a trigger for moving off
 		onAttack: null, //a trigger for attacking
+		onPickup: null,	//a trigger for pick up
 		talk: null,		//a trigger for talk
 		pushable: false,	//if it is a pushable block
 		destroyable: false,	//if it is a destroyable block
 	};
 };
 
+var makeTech = function (img, func) {
+	return {
+		image: img,	//image for tech (nullable string)
+		onPickup: func,	//trigger for pick up, takes in robot
+	};
+};
+
+function techPush(tile, tech) {
+	tile.tech = { val: tech, back: tile.tech };
+}
+
+function techPop(tile){
+	if (tile.tech === null)
+		console.log('ERROR: popped from tech stack at wrong time');
+	else {
+		var o = tile.tech.val;
+		tile.tech = tile.tech.back;
+		return o;
+	}
+	return null;
+}
+
+var pickup = function (robot, x, y) {
+	var mapLoc = map[y][x];
+	if (mapLoc.tech !== null) {
+		var a = techPop(mapLoc);
+		robot.tech.push(a);
+		a.onPickup(robot);
+	}
+	
+	if (mapLoc.onPickup)
+		mapLoc.onPickup();
+};
+
 var black = function () {
-	return { background: null, image: IMOVABLE_ROCK, entity: false, pushable: false, destroyable: false };
+	return { background: null, image: IMOVABLE_ROCK, entity: false, pushable: false, destroyable: false, tech: null };
 };
 
 var red = function (robotName, robotImage, x, y) {
@@ -424,32 +477,47 @@ var red = function (robotName, robotImage, x, y) {
 	
 	setFunc(myRobo, 'return [\'move\',\'right\',\'push\']');
 	
-	return { background: null, image: PLAIN, entity: myRobo, pushable: false, destroyable: false };
+	return { background: null, image: PLAIN, entity: myRobo, pushable: false, destroyable: false, tech: null };
 };
 
 var pink = function (gateX, gateY) {
-	return { background: null, image: PRESSURE_PLATE, entity: null, moveOn: gateUp(gateX, gateY), moveOff: gateDown(gateX, gateY), pushable: false, destroyable: false };
+	return { background: null, image: PRESSURE_PLATE, entity: null, moveOn: gateUp(gateX, gateY), moveOff: gateDown(gateX, gateY), pushable: false, destroyable: false, tech: null };
 };
 
 var teal = function () {
-	return { background: null, image: GATE_DOWN, entity: null, pushable: false, destroyable: false };
+	return { background: null, image: GATE_DOWN, entity: null, pushable: false, destroyable: false, tech: null };
 };
 
 var blue = function () {
-	return { background: null, image: PIT_FALL, entity: null, moveOn: hole(), pushable: false, destroyable: false };
+	return { background: null, image: PIT_FALL, entity: null, moveOn: hole(), pushable: false, destroyable: false, tech: null };
 };
 
 var purple = function () {
-	return { background: { val: PLAIN, back: null }, image: MOVEABLE_ROCK, entity: false, pushable: true, destroyable: false };
+	return { background: { val: PLAIN, back: null }, image: MOVEABLE_ROCK, entity: false, pushable: true, destroyable: false, tech: null };
 };
 
 var green = function () {
-	return { background: { val: PLAIN, back: null }, image: TREE, entity: false, pushable: false, destroyable: true };
+	return { background: { val: PLAIN, back: null }, image: TREE, entity: false, pushable: false, destroyable: true, tech: null };
 };
 
 var white = function () {
-	return { background: null, image: PLAIN, entity: null, pushable: false, destroyable: false };
+	return { background: null, image: PLAIN, entity: null, pushable: false, destroyable: false, tech: null };
 };
+
+var yellow = function (){
+	var TECH = [makeTech('healthBoost.png', function (robot) {
+			robot.hp++;
+		}), makeTech('attackBoost.png', function (robot) {
+			robot.damage++;
+		}), makeTech('movementBoost.png', function (robot) {
+			robot.movement++;
+		})];
+	var output = white();
+	var r = Math.random() * 3;
+	r |= 0;
+	techPush(output, TECH[r])
+	return output;
+}
 
 map = [
 	[
@@ -475,11 +543,11 @@ map = [
 	], [
 		black(),white(),white(),white(),white(),white(),white(),white(),black(),pink(8,11),white(),white(),white(),white(),white(),pink(15,11),black(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
-		black(),white(),white(),black(),white(),white(),white(),white(),teal(),white(),white(),white(),white(),white(),white(),white(),teal(),white(),white(),white(),white(),black(),white(),white(),black()
+		black(),white(),white(),black(),white(),white(),white(),white(),teal(),white(),white(),yellow(),yellow(),yellow(),white(),white(),teal(),white(),white(),white(),white(),black(),white(),white(),black()
 	], [
-		black(),green(),black(),black(),white(),white(),white(),white(),black(),white(),white(),white(),white(),white(),white(),white(),black(),white(),white(),white(),white(),black(),black(),green(),black()
+		black(),green(),black(),black(),white(),white(),white(),white(),black(),white(),white(),yellow(),yellow(),yellow(),white(),white(),black(),white(),white(),white(),white(),black(),black(),green(),black()
 	], [
-		black(),white(),white(),black(),white(),white(),white(),white(),teal(),white(),white(),white(),white(),white(),white(),white(),teal(),white(),white(),white(),white(),black(),white(),white(),black()
+		black(),white(),white(),black(),white(),white(),white(),white(),teal(),white(),white(),yellow(),yellow(),yellow(),white(),white(),teal(),white(),white(),white(),white(),black(),white(),white(),black()
 	], [
 		black(),white(),white(),white(),white(),white(),white(),white(),black(),pink(8,15),white(),white(),white(),white(),white(),pink(15,15),black(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
