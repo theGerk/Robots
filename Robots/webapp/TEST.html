@@ -1,0 +1,19 @@
+<button onclick="overlay({var: 'robot.code'})" type="button" >Click Me!</button>
+<link rel="stylesheet" type="text/css" href="modal.css">
+<div id="overlay">
+    <div class="form-group">
+      <label for="usrname"><span class="glyphicon glyphicon-user"></span>Type your shit here!<br></label>
+        <textarea class="span6" rows="5" placeholder="This is where it goes!" id="userInputText" required></textarea>  
+        <button onclick="overlay({var: 'robot.code'})" type="button" >Submit!</button>
+</div>
+<script>
+	function overlay(robot) {
+		var el = document.getElementById("overlay");
+		el.style.visibility = (el.style.visibility == "visible") ? "hidden" : "visible";
+		var myText = document.getElementById('userInputText');
+		myText.textContent = robot.str;
+	}
+</script>
+
+    
+

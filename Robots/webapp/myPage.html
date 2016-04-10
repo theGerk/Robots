@@ -6,6 +6,7 @@
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"></script>
 
 	<title></title>
+	<link rel="stylesheet" type="text/css" href="modal.css">
 	<style type="text/css">
 		.cell {
 			display: block;
@@ -19,10 +20,33 @@
 	</script>
 </head>
 <body>
+	<!--<button onclick="overlay({var: 'robot.code'})" type="button" id="btn_button">Click Me!</button>-->
+	<div id="overlay">
+		<div class="form-group">
+			<label for="usrname"><span class="glyphicon glyphicon-user"></span>Type your shit here!<br></label>
+			<textarea class="span6" rows="5" placeholder="This is where it goes!" id="userInputText" required></textarea>
+			<button id="submitButton" type="button">Submit!</button>
+		</div>
+	</div>
+	<script type="text/javascript">
+		function overlay(robot) {
+			var el = document.getElementById("overlay");
+			el.style.visibility = "visible";
+			var myText = document.getElementById('userInputText');
+			myText.value = robot.code;
+			document.getElementById('submitButton').onclick = function () {
+				setFunc(robot, myText.value);
+				el.style.visibility = "hidden";
+			};
+		}
+	</script>
 	<section id="myGame">
 		<div id="gameMap">
 		</div>
-	</section><script type="text/javascript" src="UserFunctions.js"></script>
+	</section>
+	<script type="text/javascript" src="UserFunctions.js"></script>
 </body>
+
+
 
 </html>

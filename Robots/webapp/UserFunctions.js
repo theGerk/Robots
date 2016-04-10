@@ -87,9 +87,13 @@ var drawBot = function (bot, x, y) {
 		jMax = Math.min(bot.y + 3, map.length);
 	x *= TILE_SIZE * (TILES_IN_MAP + 1);
 	y *= TILE_SIZE * (TILES_IN_MAP + 1);
-	for (var i = iStart, X = x; i < iMax; i++, X+=TILE_SIZE) {
-		for (var j = jStart, Y = y; j < jMax; j++, Y+=TILE_SIZE) {
-			putOnScreen((map[j][i].entity instanceof Object) ? roboImg(map[j][i].entity) : IMAGES[map[j][i]], X, Y);
+	for (var i = iStart, X = x; i < iMax; i++, X += TILE_SIZE) {
+		for (var j = jStart, Y = y; j < jMax; j++, Y += TILE_SIZE) {
+			var k = map[j][i];
+			if (k.entity instanceof Object)
+				putOnScreen(roboImg(k.entity), X, Y, function () { overlay(bot); });
+			else
+				putOnScreen(IMAGES[k.image], X, Y);
 		}
 	}
 };
@@ -167,7 +171,7 @@ var makeRobot = function (name, i, img, xPos, yPos) {
 };
 
 function roboImg(robit) {
-	return robit.direction + robit.img;
+	return 'Skins/' + robit.direction + robit.img;
 }
 
 /**
@@ -183,9 +187,9 @@ var setFunc = function (robot, theirCode) {
 /**
  * executed every turn/game tick
  */
-var gameTick = function (robots) {
-	for (var rob in robots) {
-		var t = robots[rob];
+var gameTick = function () {
+	for (var rob in entities) {
+		var t = entities[rob];
 		if (!(t.robotHold)) {
 			applyAction(t, t.nextMove(getInfo(t), t.data));
 		}
@@ -210,7 +214,7 @@ var applyAction = function (robot, actions) {
 		} else if (actions[action].toLowerCase() === 'talk') {
 			doAction(robot, talk);
 			i++;
-		} else if (action[action].toLowerCase() === 'fuck') {
+		} else if (actions[action].toLowerCase() === 'fuck') {
 			alert('damn right');
 		} else {
 		//throw error?
@@ -295,7 +299,7 @@ var attack = function (robot, x, y) {
 	else if (mapLoc.entity instanceof Object) {
 		mapLoc.entity.hp -= robot.damage;
 		if (mapLoc.entity.hp <= 0)
-			kill(entity);
+			kill(mapLoc.entity);
 	}
 	
 	
@@ -334,7 +338,7 @@ function moveForward(robot, x, y) {
 	var mapLoc = map[y][x];
 	
 	if (mapLoc.entity === null) {
-		var m = map[robot.x][robot.y];
+		var m = map[robot.y][robot.x];
 		
 
 		m.entity = null;
@@ -426,7 +430,7 @@ var red = function (robotName, robotImage, x, y) {
 	
 	setFunc(myRobo, 'return [\'move\',\'right\',\'push\']');
 	
-	return { background: { val: PLAIN, back: null }, image: robotImage, entity: myRobo, pushable: false, destroyable: false };
+	return { background: null, image: PLAIN, entity: myRobo, pushable: false, destroyable: false };
 };
 
 var pink = function (gateX, gateY) {
@@ -457,7 +461,7 @@ map = [
 	[
 		black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black()
 	], [
-		black(),red('android', 'Skins/android.png', 1, 1),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),green(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),red('rack', 'Skins/Robot_Black_Red.png', 23, 1),black()
+		black(),red('android', 'android.png', 1, 1),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),green(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),red('rack', 'Robot_Black_Red.png', 23, 1),black()
 	], [
 		black(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),green(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
@@ -501,7 +505,7 @@ map = [
 	], [
 		black(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),green(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),black()
 	], [
-		black(),red('robot', 'Skins/Robot_Blue.png', 1, 23),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),green(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),red('black', 'Skins/Robot_Black.png', 23, 23),black()
+		black(),red('robot', 'Robot_Blue.png', 1, 23),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),green(),white(),white(),white(),white(),white(),white(),white(),white(),white(),white(),red('black', 'Robot_Black.png', 23, 23),black()
 	], [
 		black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black(),black()
 	]
