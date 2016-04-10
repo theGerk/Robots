@@ -25,23 +25,92 @@
 		<div class="form-group">
 			<label for="usrname"><span class="glyphicon glyphicon-user"></span>Type your shit here!<br></label>
 			<textarea class="span6" rows="5" placeholder="This is where it goes!" id="userInputText" required></textarea>
-			<button id="submitButton" type="button">Submit!</button>
+			<button id="submitButton" type="button">Submit</button>
+			<button id="cancelButton" type="button">Cancel</button>
+			<p id="stats"></p>
+				<button class="switchScreenBtn" id="codeView">Code</button>
+				<button class="switchScreenBtn" id="dataView">Data</button>
+				<button class="switchScreenBtn" id="techView">Tech</button>
 		</div>
 	</div>
 	<script type="text/javascript">
 		function overlay(robot) {
-			var p = document.createElement('p');
+			var p = document.getElementById('stats');
 			p.innerHTML = 'HP: ' + robot.hp.toString() + ' &nbsp;DMG: ' + robot.damage.toString() + ' &nbsp;MVT: ' + robot.movement.toString();
 			var el = document.getElementById("overlay");
-			el.children[0].appendChild(p);
 			el.style.visibility = "visible";
 			var myText = document.getElementById('userInputText');
-			myText.value = robot.code;
-			document.getElementById('submitButton').onclick = function () {
-				setFunc(robot, myText.value);
-				el.style.visibility = "hidden";
-				p.remove();
+
+			var saved = { code: robot.code, data: JSON.stringify(robot.data) };
+
+			var currentExitFunction;
+
+			//for swithcing screens
+			var enterCodeView =function () {
+				myText.value = saved.code;
+				robot.lastWindowOpen = 'code';
+
+				//prime buttons
+				currentExitFunction = exitCodeView;
 			};
+			var enterDataView = function () {
+				myText.value = saved.data;
+				robot.lastWindowOpen = 'data';
+
+				//prime buttons
+				currentExitFunction = exitDataView;
+			};
+			var enterTechView = function () {
+				//Do stuff here to remove text box and put in images
+				robot.lastWindowOpen = 'tech';
+
+				currentExitFunction = exitTechView;
+			};
+
+
+			var exitCodeView = function () {
+				saved.code = myText.value;
+			};
+			var exitDataView = function () {
+				saved.data = myText.value;
+			};
+			var exitTechView = function () {
+				//Do stuff here to put bak text box and remove images
+			};
+
+			document.getElementById('submitButton').onclick = function () {
+				currentExitFunction();
+				setFunc(robot, saved.code);
+				robot.data = JSON.parse(saved.data);
+				el.style.visibility = "hidden";
+			};
+
+			document.getElementById('cancelButton').onclick = function () {
+				currentExitFunction();
+				el.style.visibility = 'hidden';
+			};
+
+			document.getElementById('codeView').onclick = function () {
+				currentExitFunction();
+				enterCodeView();
+			};
+
+			document.getElementById('dataView').onclick = function () {
+				currentExitFunction();
+				enterDataView();
+			};
+
+			document.getElementById('techView').onclick = function () {
+				currentExitFunction();
+				enterTechView();
+			};
+
+			if (robot.lastWindowOpen === 'code')
+				enterCodeView();
+			else if (robot.lastWindowOpen === 'data')
+				enterDataView();
+			else
+				enterTechView();
 		}
 	</script>
 	<section id="myGame">

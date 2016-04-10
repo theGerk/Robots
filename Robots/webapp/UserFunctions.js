@@ -151,6 +151,7 @@ function getInfo(bot) {
  */
 var makeRobot = function (name, i, img, xPos, yPos) {
 	return {
+		lastWindowOpen: 'code',
 		index: i,
 		'name': name,
 		x: xPos,
